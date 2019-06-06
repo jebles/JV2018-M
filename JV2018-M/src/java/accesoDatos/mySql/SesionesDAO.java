@@ -98,10 +98,10 @@ public class SesionesDAO implements OperacionesDAO {
 		try {
 			stSesiones.executeQuery(
 					"CREATE TABLE IF NOT EXISTS `sesiones` ("
-					+ "`id_usuario` VARCHAR(45) NOT NULL,"
-					+ "`fecha` TIMESTAMP NOT NULL,"
-					+ "`estado` VARCHAR(20) NOT NULL,"
-					+ "PRIMARY KEY (`id_usuario`, `fecha`))");
+							+ "`id_usuario` VARCHAR(45) NOT NULL,"
+							+ "`fecha` TIMESTAMP NOT NULL,"
+							+ "`estado` VARCHAR(20) NOT NULL,"
+							+ "PRIMARY KEY (`id_usuario`, `fecha`))");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -203,18 +203,18 @@ public class SesionesDAO implements OperacionesDAO {
 		SesionUsuario sesionNueva = (SesionUsuario) obj;
 
 		if (obtener(sesionNueva.getId()) == null) {
-			
+
 			//insert sesion
 			String query = "insert into sesiones values (?,?,?);";
 			Timestamp ts = new Timestamp(sesionNueva.getFecha().getMarcaTiempoMilisegundos());  
-			
+
 			try {
 				//preparar inserción
 				PreparedStatement prepStm = db.prepareStatement(query);
 				prepStm.setString(1, sesionNueva.getId());
 				prepStm.setTimestamp(2, ts);
 				prepStm.setString(3, sesionNueva.getEstado().toString());
-				
+
 				// insertar
 				prepStm.execute();
 
@@ -232,14 +232,39 @@ public class SesionesDAO implements OperacionesDAO {
 
 	/**
 	 * Baja de una sesion existente.
-	 * 
 	 * @param id de la sesion
 	 * @throws DatosException - si no la encuentra
+	 * @throws SQLException - si falla el borrado
+	 * @returns La sesion dada de baja 
 	 */
 	@Override
 	public SesionUsuario baja(String id) throws DatosException {
-		// TODO SesionUsuario.baja
-		return null;
+		assert id != null;
+		SesionUsuario sesionAborrar = (SesionUsuario) obtener(id);
+
+		if (sesionAborrar == null) {
+			throw new DatosException("SesionesDAO.baja: id " + id + "no encontrada");
+		}
+		else 
+		{
+			//eliminar sesion
+			String query = "delete from sesiones where id_usuario = ?";
+
+			try {
+				//preparar borrado
+				PreparedStatement prepStm = db.prepareStatement(query);
+				prepStm.setString(1, sesionAborrar.getId());				
+
+				// borrar tupla
+				prepStm.execute();
+
+				db.close();
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return sesionAborrar;
 	}
 
 	/**
